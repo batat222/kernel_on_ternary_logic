@@ -4,6 +4,7 @@
 #include <string.h>
 #include <ctype.h>
 #include "ternlang.h"
+#include "ternary_vm.h"
 
 /*
 Tiny compiler from a small TernLang subset to bytecode.
@@ -222,6 +223,12 @@ CompiledProgram *tern_compile(const char *src) {
     free(copy);
     return p;
 }
+
+void tern_exec(CompiledProgram *prog) {
+    if (!prog) return;
+    ternary_run(prog);
+}
+
 
 void free_compiled(CompiledProgram *p) {
     if (!p) return;

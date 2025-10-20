@@ -1,21 +1,18 @@
 #ifndef TERNLANG_H
 #define TERNLANG_H
 
-/* Compiled program structure returned by compiler */
 typedef struct {
-    int *code;          /* integer code words */
+    int *code;
     int code_len;
-    char **strings;     /* string table */
+    char **strings;
     int str_count;
-    char **vars;        /* variable names in order */
+    char **vars;
     int var_count;
 } CompiledProgram;
 
-/* compile source -> CompiledProgram* (caller must free with free_compiled) */
 CompiledProgram *tern_compile(const char *src);
 
-/* free compiled program */
-void free_compiled(CompiledProgram *p);
+void tern_exec(CompiledProgram *prog);
 
 #endif
 
