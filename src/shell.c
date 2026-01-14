@@ -4,75 +4,46 @@
 #include <string.h>
 #include <unistd.h>
 #include <limits.h>
+
 #include "fs.h"
 #include "ternlang.h"
+#include "ternary_vm.h"
 
-/* Simple command shell for TernOS */
+static VMMode vm_mode = VM_MODE_INT;
+
 void shell_loop(void) {
     char line[256];
     char cwd[PATH_MAX];
 
-    printf("Welcome to TernOS shell!\nType 'help' for available commands.\n\n");
-
     while (1) {
-        if (getcwd(cwd, sizeof(cwd)) == NULL) {
-            perror("getcwd");
-            strcpy(cwd, "?");
-        }
-
+        getcwd(cwd, sizeof(cwd));
         printf("%s> ", cwd);
-        fflush(stdout);
 
         if (!fgets(line, sizeof(line), stdin))
-            break;  // EOF (Ctrl+D)
-
-        line[strcspn(line, "\n")] = 0;  // Remove newline
-        if (strlen(line) == 0)
-            continue;
-
-        /* Built-in commands */
-        if (strcmp(line, "exit") == 0) {
-            printf("Exiting shell.\n");
             break;
-        } else if (strcmp(line, "help") == 0) {
-            printf("Available commands:\n");
-            printf("  ls [dir]   - list files\n");
-            printf("  cd <dir>   - change directory\n");
-            printf("  pwd        - print current directory\n");
-            printf("  run <file> - run a .tl program\n");
-            printf("  exit       - quit shell\n");
+
+        line[strcspn(line, "\n")] = 0;
+
+        if (!strcmp(line, "exit"))
+            break;
+
+        if (!strcmp(line, "mode trit")) {
+            vm_mode = VM_MODE_TRIT;
             continue;
-        } else if (strncmp(line, "ls", 2) == 0) {
-            char *arg = line + 2;
-            while (*arg == ' ') arg++;
-            fs_list(strlen(arg) ? arg : ".");
-        } else if (strncmp(line, "cd ", 3) == 0) {
-            const char *dir = line + 3;
-            if (chdir(dir) != 0)
-                perror("cd");
-        } else if (strcmp(line, "pwd") == 0) {
-            if (getcwd(cwd, sizeof(cwd)))
-                printf("%s\n", cwd);
-        } else if (strncmp(line, "run ", 4) == 0) {
-            const char *path = line + 4;
-            char *code = fs_read(path);
-            if (!code) {
-                printf("Could not read file: %s\n", path);
-                continue;
-            }
-            printf("[Running %s]\n", path);
+        }
 
-            /* compile and execute TL code */
-            CompiledProgram *prog = tern_compile(code);
-            if (prog)
-                tern_exec(prog);
-            else
-                printf("Failed to compile %s\n", path);
+        if (!strcmp(line, "mode int")) {
+            vm_mode = VM_MODE_INT;
+            continue;
+        }
 
-            free(code);
-        } else {
-            printf("Unknown command: %s\n", line);
-            printf("Use 'help' to get list of available commands.\n");
+        if (!strncmp(line, "run ", 4)) {
+            char *src = fs_read(line + 4);
+            if (!src) continue;
+            CompiledProgram *p = tern_compile(src);
+            ternary_run(p, vm_mode);
+            free_compiled(p);
+            free(src);
         }
     }
 }

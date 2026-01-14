@@ -3,9 +3,12 @@
 
 #include "ternlang.h"
 
-/* Run a compiled program in the ternary VM.
-   Variables are initialized to 0. */
-void ternary_run(CompiledProgram *prog);
+typedef enum {
+    VM_MODE_INT,
+    VM_MODE_TRIT
+} VMMode;
+
+void ternary_run(CompiledProgram *prog, VMMode mode);
 
 #endif
 

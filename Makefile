@@ -1,22 +1,37 @@
 CC = gcc
-CFLAGS = -std=c99 -O2 -Wall -Iinclude
-SRC_DIR = src
-BUILD_DIR = build
+CFLAGS = -std=c99 -Wall -Wextra -Iinclude
 
-SRCS = $(wildcard $(SRC_DIR)/*.c)
-OBJS = $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/%.o, $(SRCS))
+SRC   = src
+TESTS = tests
+BUILD = build
 
-all: $(BUILD_DIR) ternos
+CORE_SRCS = fs.c shell.c ternlang.c ternary_vm.c trit.c
+CORE_OBJS = $(CORE_SRCS:%.c=$(BUILD)/%.o)
 
-$(BUILD_DIR):
-	mkdir -p $(BUILD_DIR)
+TEST_SRCS = test_trit.c
+TEST_OBJS = $(TEST_SRCS:%.c=$(BUILD)/%.o)
 
-$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c | $(BUILD_DIR)
+all: ternos
+
+$(BUILD):
+	mkdir -p $(BUILD)
+
+$(BUILD)/%.o: $(SRC)/%.c | $(BUILD)
 	$(CC) $(CFLAGS) -c $< -o $@
 
-ternos: $(OBJS)
-	$(CC) $(CFLAGS) -o $@ $(OBJS)
+$(BUILD)/%.o: $(TESTS)/%.c | $(BUILD)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+ternos: $(CORE_OBJS) $(BUILD)/main.o
+	$(CC) $(CFLAGS) $^ -o $@
+
+tests: $(CORE_OBJS) $(TEST_OBJS) $(BUILD)/test_runner.o
+	$(CC) $(CFLAGS) $^ -o test_runner
+	./test_runner
+
+memtest: tests
+	valgrind --leak-check=full --error-exitcode=1 ./test_runner
 
 clean:
-	rm -rf $(BUILD_DIR) ternos
+	rm -rf $(BUILD) ternos test_runner
 

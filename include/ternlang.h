@@ -11,8 +11,8 @@ typedef struct {
 } CompiledProgram;
 
 CompiledProgram *tern_compile(const char *src);
-
 void tern_exec(CompiledProgram *prog);
+void free_compiled(CompiledProgram *prog);
 
 #endif
 
