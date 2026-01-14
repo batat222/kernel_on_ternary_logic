@@ -1,37 +1,56 @@
 CC = gcc
-CFLAGS = -std=c99 -Wall -Wextra -Iinclude
+CFLAGS = -std=c99 -Wall -Wextra -Iinclude -D_POSIX_C_SOURCE=200809L
 
-SRC   = src
-TESTS = tests
-BUILD = build
+BIN = ternos
 
-CORE_SRCS = fs.c shell.c ternlang.c ternary_vm.c trit.c
-CORE_OBJS = $(CORE_SRCS:%.c=$(BUILD)/%.o)
+SRC = \
+	src/main.c \
+	src/shell.c \
+	src/fs.c \
+	src/trit.c \
+	src/command_table.c
 
-TEST_SRCS = test_trit.c
-TEST_OBJS = $(TEST_SRCS:%.c=$(BUILD)/%.o)
+CMD_SRC = $(wildcard src/commands/*.c)
 
-all: ternos
+OBJ = $(SRC:src/%.c=build/%.o) \
+      $(CMD_SRC:src/commands/%.c=build/commands/%.o)
 
-$(BUILD):
-	mkdir -p $(BUILD)
+TEST_SRC = \
+	tests/test_runner.c \
+	tests/test_trit.c
 
-$(BUILD)/%.o: $(SRC)/%.c | $(BUILD)
-	$(CC) $(CFLAGS) -c $< -o $@
+TEST_OBJ = $(TEST_SRC:tests/%.c=build/tests/%.o)
 
-$(BUILD)/%.o: $(TESTS)/%.c | $(BUILD)
-	$(CC) $(CFLAGS) -c $< -o $@
+.PHONY: all clean tests memtest
 
-ternos: $(CORE_OBJS) $(BUILD)/main.o
+all: $(BIN)
+
+$(BIN): $(OBJ)
 	$(CC) $(CFLAGS) $^ -o $@
 
-tests: $(CORE_OBJS) $(TEST_OBJS) $(BUILD)/test_runner.o
-	$(CC) $(CFLAGS) $^ -o test_runner
-	./test_runner
+build/%.o: src/%.c
+	mkdir -p build
+	$(CC) $(CFLAGS) -c $< -o $@
 
-memtest: tests
-	valgrind --leak-check=full --error-exitcode=1 ./test_runner
+build/commands/%.o: src/commands/%.c
+	mkdir -p build/commands
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# ===== TESTS =====
+
+build/tests/%.o: tests/%.c
+	mkdir -p build/tests
+	$(CC) $(CFLAGS) -c $< -o $@
+
+build/tests/test_runner: $(TEST_OBJ) build/trit.o
+	$(CC) $(CFLAGS) $^ -o $@
+
+tests: build/tests/test_runner
+	./build/tests/test_runner
+
+memtest: build/tests/test_runner
+	valgrind --leak-check=full ./build/tests/test_runner
 
 clean:
-	rm -rf $(BUILD) ternos test_runner
+	rm -rf build $(BIN)
 

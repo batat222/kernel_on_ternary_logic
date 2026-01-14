@@ -1,0 +1,4 @@
+OP_GETENV "PATH"
+OP_PRINT "\n"
+OP_EXIT
+

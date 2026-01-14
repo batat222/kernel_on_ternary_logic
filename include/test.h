@@ -1,9 +1,14 @@
-#ifndef TEST_H
-#define TEST_H
+#ifndef TRIT_H
+#define TRIT_H
 
-#define ASSERT(x) do { if (!(x)) return 1; } while (0)
+typedef enum {
+    TRIT_NEG  = -1,
+    TRIT_ZERO =  0,
+    TRIT_POS  =  1
+} trit_t;
 
-int test_run_all(void);
+trit_t trit_add(trit_t a, trit_t b);
+trit_t trit_neg(trit_t a);
 
 #endif
 

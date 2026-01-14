@@ -1,50 +1,48 @@
-#define _POSIX_C_SOURCE 200809L
+#include "shell.h"
+#include "cmd.h"
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <limits.h>
+#include <stdlib.h>
 
-#include "fs.h"
-#include "ternlang.h"
-#include "ternary_vm.h"
+static int split(char *line, char **argv) {
+    int argc = 0;
+    char *t = strtok(line, " \t\n");
+    while (t && argc < 63) {
+        argv[argc++] = t;
+        t = strtok(NULL, " \t\n");
+    }
+    argv[argc] = NULL;
+    return argc;
+}
 
-static VMMode vm_mode = VM_MODE_INT;
+static void execute(int argc, char **argv) {
+    if (argc == 0) return;
 
-void shell_loop(void) {
-    char line[256];
-    char cwd[PATH_MAX];
+    cmd_ctx_t ctx = { argc, argv };
+
+    for (int i = 0; command_table[i].name; i++) {
+        if (strcmp(argv[0], command_table[i].name) == 0) {
+            command_table[i].fn(&ctx);
+            return;
+        }
+    }
+    printf("unknown command: %s\n", argv[0]);
+}
+
+void shell_run(void) {
+    char line[1024];
+    char *argv[64];
 
     while (1) {
-        getcwd(cwd, sizeof(cwd));
-        printf("%s> ", cwd);
+        char *cwd = getcwd(NULL, 0);
+        printf("[ternos]%s$ ", cwd ? cwd : "");
+        free(cwd);
 
         if (!fgets(line, sizeof(line), stdin))
             break;
 
-        line[strcspn(line, "\n")] = 0;
-
-        if (!strcmp(line, "exit"))
-            break;
-
-        if (!strcmp(line, "mode trit")) {
-            vm_mode = VM_MODE_TRIT;
-            continue;
-        }
-
-        if (!strcmp(line, "mode int")) {
-            vm_mode = VM_MODE_INT;
-            continue;
-        }
-
-        if (!strncmp(line, "run ", 4)) {
-            char *src = fs_read(line + 4);
-            if (!src) continue;
-            CompiledProgram *p = tern_compile(src);
-            ternary_run(p, vm_mode);
-            free_compiled(p);
-            free(src);
-        }
+        int argc = split(line, argv);
+        execute(argc, argv);
     }
 }
-

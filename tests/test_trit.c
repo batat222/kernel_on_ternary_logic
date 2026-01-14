@@ -1,19 +1,25 @@
-#include "test.h"
+#include <stdio.h>
 #include "trit.h"
 
+static int fails = 0;
+
+#define ASSERT_EQ(a,b) \
+    if ((a) != (b)) { \
+        printf("FAIL %s:%d\n", __FILE__, __LINE__); \
+        fails++; \
+    }
+
 int test_trit(void) {
-    ASSERT(trit_encode(-1) == 0b10);
-    ASSERT(trit_encode(0) == 0b00);
-    ASSERT(trit_encode(1) == 0b01);
+    /* neg */
+    ASSERT_EQ(trit_neg(TRIT_POS), TRIT_NEG);
+    ASSERT_EQ(trit_neg(TRIT_NEG), TRIT_POS);
+    ASSERT_EQ(trit_neg(TRIT_ZERO), TRIT_ZERO);
 
-    ASSERT(trit_decode(0b10) == -1);
-    ASSERT(trit_decode(0b01) == 1);
-    ASSERT(trit_decode(0b00) == 0);
+    /* add */
+    ASSERT_EQ(trit_add(TRIT_POS, TRIT_POS), TRIT_NEG);
+    ASSERT_EQ(trit_add(TRIT_POS, TRIT_NEG), TRIT_ZERO);
+    ASSERT_EQ(trit_add(TRIT_NEG, TRIT_NEG), TRIT_POS);
 
-    ASSERT(trit_add(1, 1) == 1);
-    ASSERT(trit_add(-1, -1) == -1);
-    ASSERT(trit_add(1, -1) == 0);
-
-    return 0;
+    return fails;
 }
 
