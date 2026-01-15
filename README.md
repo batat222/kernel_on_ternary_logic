@@ -16,24 +16,18 @@ The goal is to explore low-level system design, ternary computation, and clean C
 
 ## Project structure
 
+```
 .
 ├── include/        # Public headers
-
 ├── src/            # Core sources
-
 │   ├── commands/   # Built-in shell commands
-
 │   └── ...
-
 ├── tests/          # Unit tests
-
 ├── docs/           # Documentation (TBC spec, etc.)
-
 ├── build/          # Build artifacts
-
 ├── Makefile
-
 └── README.md
+```
 
 ---
 
