@@ -18,13 +18,21 @@ The goal is to explore low-level system design, ternary computation, and clean C
 
 .
 ├── include/        # Public headers
+
 ├── src/            # Core sources
+
 │   ├── commands/   # Built-in shell commands
+
 │   └── ...
+
 ├── tests/          # Unit tests
+
 ├── docs/           # Documentation (TBC spec, etc.)
+
 ├── build/          # Build artifacts
+
 ├── Makefile
+
 └── README.md
 
 ---
@@ -88,5 +96,6 @@ Tested on Linux.
 
 ## Notes
 
+This project is a vibecoded mock (will be fixed by full manual rewriting)
 This project is experimental and intended for learning and research purposes.
 The architecture favors clarity and correctness over performance.
